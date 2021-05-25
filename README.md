@@ -1,6 +1,9 @@
 # TabSpacePlay
 
-Armbian 기반 Apple AirPlay를 지원하는 TabSpace의 OS입니다.
+1) Armbian 기반 Apple AirPlay를 지원하는 TabSpace의 OS입니다.
+
+2) MultiRoom 동시재생 솔루션을 Balena Sound 솔루션을 활용하여 제공합니다.
+
 
 
 # Command
