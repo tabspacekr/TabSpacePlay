@@ -28,4 +28,6 @@ sudo systemctl status shairport-sync.service
 
 sleep 1.5
 
+renice -n -19 -u shairport-sync
+
 exit
