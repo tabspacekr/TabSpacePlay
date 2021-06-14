@@ -6,6 +6,7 @@
 
 # Installation Command : Method A
 
+<pre>
 apt update && apt upgrade -y
 
 apt install shairport-sync
@@ -19,11 +20,14 @@ alsamixer
 - Line Out and DAC Volume MAX
 
 renice -n -19 -u shairport-sync
+</pre>
 
 # Installation Command : Method B
 
+<pre>
 wget https://raw.githubusercontent.com/tabspacekr/TabSpacePlay/main/ogpi_airplay_install.sh
 
 chmod a+x ogpi_airplay_install.sh
 
 ./ogpi_airplay_install.sh
+</pre>
