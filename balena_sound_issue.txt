@@ -1,0 +1,93 @@
+===== balena sound로 구축 시 참고사항 =====
+
+처음에 balena cloud account만들면 10대까지는 무료로 가능함.
+- 제약조건 : 클라우드에서 docker이미지 받아서 설치하는 관계로, 무료버전에서는 기기10대만 등록가능
+
+balena sound사이트에서 deploy하는 형태로 만들것.
+
+라즈베리파이3,4를 모두 테스트하였으나, 내장 3.5파이 사운드출력의 음질은 듣기 어려운 수준이어서, 저가형 USB사운드카드를 추가하여 해결함.
+
+개발팀의 데모영상 : https://www.youtube.com/watch?v=nT_I_79QY18
+
+===== 무선출력망 분리 참고 =====
+
+무선출력망(WIFI) 분리하는것이 필요함. 청담동의 경우에는 공유기1식 추가납품하여서 구성하였음.
+
+설정이 된 상태에서, 원격으로 와이파이 변경이 필요할때 참조 (인터넷 연결을 필요함)
+- 참고: https://www.balena.io/docs/reference/OS/network/2.x/
+
+root@balena:/etc/NetworkManager/system-connections# vi balena-wifi-01 <-- 여기 바꿔도 재부팅시 반영안됨. sd카드에 있는 것을 바꾸어야 인지함.
+
+root@balena:/mnt/boot/system-connections# vi balena-wifi-01 <-- 이런식, 즉, sd카드 분리 후에 해당 경로에 
+
+리눅스 WIFI SSID 검색
+iw wlan0 scan |grep SSID
+
+root@balena:/etc/NetworkManager/system-connections# iw wlan0 scan |grep SSID
+        SSID: CDUPENN_AP2
+        SSID: iptime
+        SSID: DIRECT-RbM2070 Series
+        SSID: Double C's a.k.a \xec\xa0\x84\xec\xb0\xac
+        SSID: xi realty 2.4G
+        SSID: iptime
+        SSID: \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+        SSID: SO070VOIP20B3
+        SSID: coffee
+        SSID: SO070VOIP71DB
+        SSID: saramcorp
+        SSID: oclheim
+        SSID: PLATFORM_STUDIO
+        SSID: \x00\x00\x00\x00\x00\x00\x00
+        SSID: KT_GiGA_2G_Wave2_22D8
+                 * SSID List
+        SSID: KT_GiGA_2G_3F6C
+        SSID: KT_GiGA_2G_C261
+        SSID: UNO COFFEE 2
+        SSID: KT_GiGA_5G_3F6C
+        SSID: KT_GiGA_5G_Wave2_22D8
+                 * SSID List
+리눅스 연결 WIFI 검색
+iw wlan0 link
+
+root@balena:~# iw wlan0 link
+Connected to 72:5d:cc:cf:88:3c (on wlan0)
+        SSID: CDUPENN_AP2
+        freq: 2452
+        RX: 340726712 bytes (393937 packets)
+        TX: 57642700 bytes (334866 packets)
+        signal: -69 dBm
+        rx bitrate: 13.0 MBit/s
+        tx bitrate: 108.0 MBit/s
+
+        bss flags:      short-slot-time
+        dtim period:    1
+        beacon int:     100
+        
+
+===== 외부에서 원격으로 재기동 명령 수행 =====
+
+외부 클라우드서버에 크론탭을 다음과 같이 변경함.
+
+cdupenn_reboot-master.sh 생성하여, MULTIROOM_SERVER만 매일 2시 정각에 재기동
+cdupenn_reboot.sh 수정하여, 나머지 2개실만 MULTIROOM_CLIENT로 매일 2시 18분에 재기동
+
+이렇게 하는 이유는, 동시에 재기동을 하다보니, CLIENT가 SERVER를 인지못하는 시간차이가 있는듯하여서 로직 수정함.
+balena reboot api
+https://www.balena.io/docs/learn/develop/runtime/#reboot-from-inside-the-container
+https://github.com/balena-os/balena-supervisor/blob/master/docs/API.md#post-v1reboot
+
+api key 발행 방법
+- https://dashboard.balena-cloud.com/preferences/access-tokens
+
+crontab -e
+2 2 * * * /root/cdupenn_reboot.sh > /root/cdupenn_reboot.log
+
+#final cdupenn_reboot.sh
+
+echo "reboot start : $(date +%Y%m%d) " 
+#master
+curl -X POST --header "Content-Type:application/json" \
+    --header "Authorization: Bearer API-KEY-REPLACE" \
+    --data '{"uuid": "UUID-REPLACE"}' \
+    "https://api.balena-cloud.com/supervisor/v1/reboot" 
+echo "reboot end : $(date +%Y%m%d) " 
